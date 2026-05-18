@@ -233,19 +233,15 @@ window.addEventListener("load", function () {
 
             <h2>${a.full_name}</h2>
 
-            <div class="you-are">YOU ARE</div>
+            <div class="athlete-profile">
 
-            <div class="type">
-                ${formatLabel(t?.runner_type)}
-            </div>
+                <div class="athlete-type">
+                    ${formatLabel(t?.runner_type)}
+                </div>
 
-            <div class="focus-block single-focus">
-
-                <label>TRAINING FOCUS</label>
-
-                <p>
+                <div class="athlete-focus">
                     ${formatLabel(t?.training_focus)}
-                </p>
+                </div>
 
             </div>
 
