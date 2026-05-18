@@ -30,14 +30,20 @@ window.addEventListener("load", function () {
             "Loaded " + physData.length + " athletes";
 
         const dropdown = document.getElementById("athleteDropdown");
+
         dropdown.innerHTML = "";
 
-        physData.sort((a, b) => a.full_name.localeCompare(b.full_name));
+        physData.sort((a, b) =>
+            a.full_name.localeCompare(b.full_name)
+        );
 
         physData.forEach((a, i) => {
+
             const opt = document.createElement("option");
+
             opt.value = i;
             opt.textContent = a.full_name;
+
             dropdown.appendChild(opt);
         });
 
@@ -51,28 +57,44 @@ window.addEventListener("load", function () {
     // ---------- helpers ----------
 
     function getTraining(name) {
-        return trainingData.find(r => r.full_name === name);
+
+        return trainingData.find(r =>
+            r.full_name === name
+        );
     }
 
     function getCourses(id) {
-        const row = courseData.find(r => r.athlete_id === id);
+
+        const row = courseData.find(r =>
+            r.athlete_id === id
+        );
+
         if (!row) return "";
 
         return Object.entries(row)
-            .filter(([k, v]) => k !== "athlete_id" && k !== "full_name" && v)
+            .filter(([k, v]) =>
+                k !== "athlete_id" &&
+                k !== "full_name" &&
+                v
+            )
             .map(([k, v]) => `
                 <div class="course-item">
                     <label>${k.replace(/_/g, " ")}</label>
                     <span>${v}</span>
                 </div>
-            `).join("");
+            `)
+            .join("");
     }
 
     function getYearRow(name) {
-        return yearData.find(r => r.full_name === name);
+
+        return yearData.find(r =>
+            r.full_name === name
+        );
     }
 
     function timeToSeconds(t) {
+
         if (!t) return null;
 
         const [m, s] = t.split(":");
@@ -81,6 +103,7 @@ window.addEventListener("load", function () {
     }
 
     function getImprovement(row) {
+
         if (!row) return null;
 
         const f = timeToSeconds(row.freshman_pr);
@@ -121,7 +144,8 @@ window.addEventListener("load", function () {
                     <label>${label}</label>
                     <span>${val}</span>
                 </div>
-            `).join("");
+            `)
+            .join("");
 
         const imp = getImprovement(row);
 
@@ -153,57 +177,6 @@ window.addEventListener("load", function () {
             .replace(/\b\w/g, c => c.toUpperCase());
     }
 
-    // ---------- 2D MAP ----------
-
-    function normalize(val, min, max) {
-
-        if (val == null) return 0.5;
-
-        let n = (val - min) / (max - min);
-
-        return Math.max(0, Math.min(1, n));
-    }
-
-    function get2DPosition(t) {
-
-        const serMin = 1.023;
-        const serMax = 1.164;
-
-        const speedMin = 0.0;
-        const speedMax = 0.13;
-
-        const x = normalize(
-            t.speed_reserve_ratio,
-            speedMin,
-            speedMax
-        );
-
-        const y = normalize(
-            t.ser_estimate_raw,
-            serMin,
-            serMax
-        );
-
-        return {
-            x: x * 100,
-            y: (1 - y) * 100
-        };
-    }
-
-    function build2DMap(t) {
-
-        const pos = get2DPosition(t);
-
-        return `
-            <div class="quad">
-                <div
-                    class="dot"
-                    style="left:${pos.x}%; top:${pos.y}%;"
-                ></div>
-            </div>
-        `;
-    }
-
     // ---------- render ----------
 
     function showAthlete(i) {
@@ -228,27 +201,26 @@ window.addEventListener("load", function () {
                 ${formatLabel(t?.runner_type)}
             </div>
 
-            <div class="focus-grid">
-
-                <div class="focus-block">
-                    <label>TRAINING FOCUS</label>
-                    <p>${formatLabel(t?.training_focus)}</p>
-                </div>
-
-                <div class="focus-block">
-                    <label>LIMITING FACTOR</label>
-                    <p>${formatLabel(t?.limiting_factor)}</p>
-                </div>
-
+            <div class="focus-block single-focus">
+                <label>TRAINING FOCUS</label>
+                <p>${formatLabel(t?.training_focus)}</p>
             </div>
 
-            ${t ? build2DMap(t) : ""}
+        </div>
 
-            <div class="pace-grid">
+        <div class="card pace-zones-card">
+
+            <h3>PACE ZONES</h3>
+
+            <div class="pace-grid-horizontal">
 
                 <div class="pace-card">
                     <label>Recovery</label>
-                    <span>${formatTime(t?.recovery_sec)}</span>
+                    <span>
+                        ${formatTime(t?.recovery_sec)}
+                        -
+                        ${t?.aerobic_easy_min_pace || "-"}
+                    </span>
                 </div>
 
                 <div class="pace-card">
@@ -262,7 +234,11 @@ window.addEventListener("load", function () {
 
                 <div class="pace-card">
                     <label>Steady</label>
-                    <span>${formatTime(t?.steady_sec)}</span>
+                    <span>
+                        ${formatTime(t?.steady_sec)}
+                        -
+                        ${t?.threshold_min_pace || "-"}
+                    </span>
                 </div>
 
                 <div class="pace-card">
@@ -276,12 +252,20 @@ window.addEventListener("load", function () {
 
                 <div class="pace-card">
                     <label>Critical Velocity</label>
-                    <span>${t?.cv_pace || "-"}</span>
+                    <span>
+                        ${t?.cv_pace || "-"}
+                        -
+                        ${t?.vo2_pace || "-"}
+                    </span>
                 </div>
 
                 <div class="pace-card">
                     <label>VO2</label>
-                    <span>${t?.vo2_pace || "-"}</span>
+                    <span>
+                        ${t?.vo2_pace || "-"}
+                        -
+                        ${t?.vo2_pace || "-"}
+                    </span>
                 </div>
 
             </div>
