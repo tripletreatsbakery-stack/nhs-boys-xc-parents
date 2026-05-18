@@ -9,20 +9,20 @@ window.addEventListener("load", function () {
     };
 
     let physData = [];
-    let courseData = [];
+    let prData = [];
     let yearData = [];
     let trainingData = [];
 
     Promise.all([
         fetch(base + "v_athlete_physiology", { headers }).then(r => r.json()),
-        fetch(base + "v_active_athlete_prs_pivot", { headers }).then(r => r.json()),
+        fetch(base + "v_athlete_prs", { headers }).then(r => r.json()),
         fetch(base + "v_athlete_5k_years_wide", { headers }).then(r => r.json()),
         fetch(base + "v_athlete_pace_bands_v2", { headers }).then(r => r.json())
     ])
-    .then(([phys, courses, years, training]) => {
+    .then(([phys, prs, years, training]) => {
 
         physData = phys;
-        courseData = courses || [];
+        prData = prs || [];
         yearData = years || [];
         trainingData = training || [];
 
@@ -65,27 +65,11 @@ window.addEventListener("load", function () {
         );
     }
 
-    function getCourses(id) {
+    function getPRs(id) {
 
-        const row = courseData.find(r =>
+        return prData.find(r =>
             r.athlete_id === id
         );
-
-        if (!row) return "";
-
-        return Object.entries(row)
-            .filter(([k, v]) =>
-                k !== "athlete_id" &&
-                k !== "full_name" &&
-                v
-            )
-            .map(([k, v]) => `
-                <div class="course-item">
-                    <label>${k.replace(/_/g, " ")}</label>
-                    <span>${v}</span>
-                </div>
-            `)
-            .join("");
     }
 
     function getYearRow(name) {
@@ -126,19 +110,6 @@ window.addEventListener("load", function () {
             .padStart(2, "0");
 
         return `${m}:${sec}`;
-    }
-
-    function formatTime(sec) {
-
-        if (!sec) return "-";
-
-        const m = Math.floor(sec / 60);
-
-        const s = Math.round(sec % 60)
-            .toString()
-            .padStart(2, "0");
-
-        return `${m}:${s}`;
     }
 
     function formatLabel(v) {
@@ -221,9 +192,9 @@ window.addEventListener("load", function () {
 
         const a = physData[i];
 
-        const t = getTraining(a.full_name);
+        const prs = getPRs(a.athlete_id);
 
-        const courses = getCourses(a.athlete_id);
+        const t = getTraining(a.full_name);
 
         const years = getYearRow(a.full_name);
 
@@ -308,7 +279,7 @@ window.addEventListener("load", function () {
                     </div>
 
                     <div class="pace-range">
-                        ${formatTime(t?.steady_sec)}
+                        ${t?.steady_pace || "-"}
                     </div>
 
                     <div class="pace-unit">
@@ -394,28 +365,73 @@ window.addEventListener("load", function () {
             <div class="pr-grid">
 
                 <div>
+
                     <label>800</label>
-                    <span>${formatTime(a.pr_800_seconds)}</span>
+
+                    <span>
+                        ${prs?.pr_800_raw || "-"}
+                    </span>
+
+                    <div class="pr-date">
+                        ${prs?.pr_800_date || ""}
+                    </div>
+
                 </div>
 
                 <div>
+
                     <label>1600</label>
-                    <span>${formatTime(a.pr_1600_seconds)}</span>
+
+                    <span>
+                        ${prs?.pr_1600_raw || "-"}
+                    </span>
+
+                    <div class="pr-date">
+                        ${prs?.pr_1600_date || ""}
+                    </div>
+
                 </div>
 
                 <div>
+
                     <label>3200</label>
-                    <span>${formatTime(a.pr_3200_seconds)}</span>
+
+                    <span>
+                        ${prs?.pr_3200_raw || "-"}
+                    </span>
+
+                    <div class="pr-date">
+                        ${prs?.pr_3200_date || ""}
+                    </div>
+
                 </div>
 
                 <div>
+
                     <label>4000</label>
-                    <span>${formatTime(a.pr_4000_seconds)}</span>
+
+                    <span>
+                        ${prs?.pr_4000_raw || "-"}
+                    </span>
+
+                    <div class="pr-date">
+                        ${prs?.pr_4000_date || ""}
+                    </div>
+
                 </div>
 
                 <div>
+
                     <label>5000</label>
-                    <span>${formatTime(a.pr_5000_seconds)}</span>
+
+                    <span>
+                        ${prs?.pr_5000_raw || "-"}
+                    </span>
+
+                    <div class="pr-date">
+                        ${prs?.pr_5000_date || ""}
+                    </div>
+
                 </div>
 
             </div>
@@ -433,7 +449,25 @@ window.addEventListener("load", function () {
                     <h4>MEET PRs</h4>
 
                     <div class="course-grid">
-                        ${courses}
+
+                        ${Object.entries(prs || {})
+                            .filter(([k, v]) =>
+                                k.startsWith("meet_") &&
+                                v
+                            )
+                            .map(([k, v]) => `
+                                <div class="course-item">
+                                    <label>
+                                        ${k
+                                            .replace("meet_", "")
+                                            .replace(/_/g, " ")
+                                        }
+                                    </label>
+                                    <span>${v}</span>
+                                </div>
+                            `)
+                            .join("")}
+
                     </div>
 
                 </div>
