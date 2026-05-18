@@ -219,7 +219,7 @@ window.addEventListener("load", function () {
 
         <div class="card pace-zones-card">
 
-            <h3>PACE ZONES</h3>
+            <h3>TRAINING PACE ZONES</h3>
 
             <div class="pace-scroll">
 
