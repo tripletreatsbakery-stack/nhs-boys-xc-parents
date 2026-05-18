@@ -1,199 +1,358 @@
-function showAthlete(i) {
+:root {
+    --bg: #000;
+    --panel: #111;
+    --gold: #d4af37;
+    --text: #f5f5f5;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0;
+}
+
+header {
+    color: var(--gold);
+    padding: 20px;
+    text-align: center;
+    border-bottom: 2px solid var(--gold);
+}
+
+main {
+    padding: 20px;
+    max-width: 900px;
+    margin: auto;
+}
+
+select {
+    padding: 8px;
+    background: var(--panel);
+    color: var(--text);
+    border: 1px solid var(--gold);
+}
+
+#status {
+    color: var(--gold);
+    margin-top: 10px;
+}
+
+.card {
+    border: 1px solid var(--gold);
+    padding: 20px;
+    border-radius: 10px;
+    background: var(--panel);
+    margin-top: 20px;
+}
+
+.identity {
+    margin: 10px 0 20px;
+}
+
+.you-are {
+    font-size: 12px;
+    color: #aaa;
+    margin-top: 10px;
+    letter-spacing: 1px;
+}
+
+.type {
+    font-size: 22px;
+    color: var(--gold);
+    font-weight: bold;
+    margin-top: 6px;
+}
+
+.section {
+    margin-top: 20px;
+}
+
+.section h3 {
+    color: var(--gold);
+    border-bottom: 1px solid var(--gold);
+    padding-bottom: 5px;
+}
+
+.pr-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    text-align: center;
+    margin-top: 10px;
+    gap: 10px;
+}
+
+.pr-grid label {
+    font-size: 11px;
+    color: #aaa;
+}
+
+.pr-grid span {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.section.focus {
+    background: rgba(212,175,55,0.05);
+    padding: 15px;
+    border-radius: 6px;
+}
+
+/* Split layout */
+
+.course-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.course-grid {
+    display: grid;
+    gap: 10px;
+}
+
+.course-item {
+    background: rgba(255,255,255,0.03);
+    padding: 8px;
+    border-radius: 6px;
+    text-align: center;
+}
+
+.course-item label {
+    font-size: 11px;
+    color: #aaa;
+}
+
+.course-item span {
+    font-weight: bold;
+}
+
+.year-grid {
+    display: grid;
+    gap: 10px;
+}
+
+.year-item {
+    background: rgba(255,255,255,0.03);
+    padding: 10px;
+    border-radius: 6px;
+    text-align: center;
+}
+
+.year-item label {
+    font-size: 11px;
+    color: #aaa;
+}
+
+.year-item span {
+    font-weight: bold;
+}
+
+.improvement {
+    margin-top: 12px;
+    padding: 10px;
+    border: 1px solid var(--gold);
+    border-radius: 6px;
+    text-align: center;
+    color: var(--gold);
+    font-weight: bold;
+}
+
+/* Spectrum gauge */
+
+.spectrum {
+    margin-top: 15px;
+}
+
+.labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: #aaa;
+    margin-bottom: 5px;
+}
+
+.bar {
+    position: relative;
+    height: 6px;
+    background: linear-gradient(
+        to right,
+        #7f1d1d,
+        #d4af37,
+        #1d4ed8
+    );
+    border-radius: 4px;
+}
+
+.marker {
+    position: absolute;
+    top: -4px;
+    width: 12px;
+    height: 12px;
+    background: white;
+    border: 2px solid #000;
+    border-radius: 50%;
+    transform: translateX(-50%);
+}
 
-    const a = physData[i];
+/* ========================================= */
+/* TRAINING FOCUS */
+/* ========================================= */
 
-    const t = getTraining(a.full_name);
+.single-focus {
+    margin-top: 20px;
+    padding: 16px;
+    background: rgba(212,175,55,0.04);
+    border-radius: 8px;
+}
 
-    const courses = getCourses(a.athlete_id);
+.single-focus label {
+    display: block;
+    font-size: 11px;
+    color: #aaa;
+    margin-bottom: 10px;
+    letter-spacing: 1px;
+}
 
-    const years = getYearRow(a.full_name);
+.single-focus p {
+    margin: 0;
+    font-size: 16px;
+    font-weight: bold;
+}
 
-    document.getElementById("athleteData").innerHTML = `
+/* ========================================= */
+/* PACE ZONES */
+/* ========================================= */
 
-    <div class="card training">
+.pace-zones-card {
+    overflow: hidden;
+}
 
-        <h2>${a.full_name}</h2>
+.pace-zones-card h3 {
+    color: var(--gold);
+    border-bottom: 1px solid var(--gold);
+    padding-bottom: 10px;
+    margin-bottom: 18px;
+}
 
-        <div class="you-are">YOU ARE</div>
+.pace-scroll {
 
-        <div class="type">
-            ${formatLabel(t?.runner_type)}
-        </div>
+    display: flex;
 
-        <div class="focus-block single-focus">
-            <label>TRAINING FOCUS</label>
-            <p>${formatLabel(t?.training_focus)}</p>
-        </div>
+    gap: 18px;
 
-    </div>
+    overflow-x: auto;
 
-    <div class="card pace-zones-card">
+    overflow-y: hidden;
 
-        <h3>PACE ZONES</h3>
+    padding-bottom: 10px;
 
-        <div class="pace-scroll">
+    scroll-behavior: smooth;
 
-            <div class="pace-card">
+    scrollbar-width: none;
+}
 
-                <div class="pace-title">RECOVERY</div>
+.pace-scroll::-webkit-scrollbar {
+    display: none;
+}
 
-                <div class="pace-icon">↻</div>
+.pace-card {
 
-                <div class="pace-range">
-                    ${formatTime(t?.recovery_sec)}
-                    -
-                    ${t?.aerobic_easy_min_pace || "-"}
-                </div>
+    min-width: 170px;
 
-                <div class="pace-unit">min/mi</div>
+    height: 240px;
 
-            </div>
+    background: rgba(255,255,255,0.02);
 
-            <div class="pace-card">
+    border: 1px solid rgba(212,175,55,0.10);
 
-                <div class="pace-title">AEROBIC EASY</div>
+    border-radius: 12px;
 
-                <div class="pace-icon">♡</div>
+    display: flex;
 
-                <div class="pace-range">
-                    ${t?.aerobic_easy_min_pace || "-"}
-                    -
-                    ${t?.aerobic_easy_max_pace || "-"}
-                </div>
+    flex-direction: column;
 
-                <div class="pace-unit">min/mi</div>
+    justify-content: center;
 
-            </div>
+    align-items: center;
 
-            <div class="pace-card">
+    text-align: center;
 
-                <div class="pace-title">STEADY</div>
+    flex-shrink: 0;
 
-                <div class="pace-icon">∿</div>
+    transition: all 0.2s ease;
+}
 
-                <div class="pace-range">
-                    ${formatTime(t?.steady_sec)}
-                    -
-                    ${t?.threshold_min_pace || "-"}
-                </div>
+.pace-card:hover {
 
-                <div class="pace-unit">min/mi</div>
+    transform: translateY(-3px);
 
-            </div>
+    border-color: rgba(212,175,55,0.4);
 
-            <div class="pace-card">
+    background: rgba(212,175,55,0.04);
+}
 
-                <div class="pace-title">THRESHOLD</div>
+.pace-title {
 
-                <div class="pace-icon">◔</div>
+    font-size: 11px;
 
-                <div class="pace-range">
-                    ${t?.threshold_min_pace || "-"}
-                    -
-                    ${t?.threshold_max_pace || "-"}
-                </div>
+    color: #bbb;
 
-                <div class="pace-unit">min/mi</div>
+    letter-spacing: 0.8px;
 
-            </div>
+    font-weight: bold;
 
-            <div class="pace-card">
+    margin-bottom: 28px;
+}
 
-                <div class="pace-title">CRITICAL VELOCITY</div>
+.pace-icon {
 
-                <div class="pace-icon">⚡</div>
+    font-size: 42px;
 
-                <div class="pace-range">
-                    ${t?.cv_pace || "-"}
-                    -
-                    ${t?.vo2_pace || "-"}
-                </div>
+    color: var(--gold);
 
-                <div class="pace-unit">min/mi</div>
+    margin-bottom: 28px;
+}
 
-            </div>
+.pace-range {
 
-            <div class="pace-card">
+    font-size: 18px;
 
-                <div class="pace-title">VO2</div>
+    font-weight: bold;
 
-                <div class="pace-icon">◉</div>
+    color: var(--gold);
 
-                <div class="pace-range">
-                    ${t?.vo2_pace || "-"}
-                    -
-                    ${t?.vo2_pace || "-"}
-                </div>
+    line-height: 1.4;
 
-                <div class="pace-unit">min/mi</div>
+    margin-bottom: 8px;
+}
 
-            </div>
+.pace-unit {
 
-        </div>
+    font-size: 11px;
 
-    </div>
+    color: #888;
+}
 
-    <div class="card">
+/* ========================================= */
+/* MOBILE */
+/* ========================================= */
 
-        <h3>PRs</h3>
+@media (max-width: 700px) {
 
-        <div class="pr-grid">
+    .course-layout {
+        grid-template-columns: 1fr;
+    }
 
-            <div>
-                <label>800</label>
-                <span>${formatTime(a.pr_800_seconds)}</span>
-            </div>
+    .pr-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 
-            <div>
-                <label>1600</label>
-                <span>${formatTime(a.pr_1600_seconds)}</span>
-            </div>
+    .pace-card {
+        min-width: 150px;
+        height: 220px;
+    }
 
-            <div>
-                <label>3200</label>
-                <span>${formatTime(a.pr_3200_seconds)}</span>
-            </div>
-
-            <div>
-                <label>4000</label>
-                <span>${formatTime(a.pr_4000_seconds)}</span>
-            </div>
-
-            <div>
-                <label>5000</label>
-                <span>${formatTime(a.pr_5000_seconds)}</span>
-            </div>
-
-        </div>
-
-    </div>
-
-    <div class="card">
-
-        <h3>HISTORY</h3>
-
-        <div class="course-layout">
-
-            <div>
-
-                <h4>Courses</h4>
-
-                <div class="course-grid">
-                    ${courses}
-                </div>
-
-            </div>
-
-            <div>
-
-                <h4>Progression</h4>
-
-                ${buildYearHTML(years)}
-
-            </div>
-
-        </div>
-
-    </div>
-    `;
+    .pace-range {
+        font-size: 16px;
+    }
 }
