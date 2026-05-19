@@ -291,7 +291,10 @@ window.addEventListener("load", function () {
                     </div>
 
                     <div class="pace-range">
-                        ${t?.steady_pace || "-"}
+                        ${t?.steady_min_pace || "-"}
+                        -
+                        ${t?.steady_max_pace || "-"}
+                        
                     </div>
 
                     <div class="pace-unit">
