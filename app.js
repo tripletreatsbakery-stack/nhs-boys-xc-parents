@@ -161,6 +161,43 @@ window.addEventListener("load", function () {
         return `${paceMin}:${paceRemain}/mi`;
     }
 
+    function formatPaceForMeet(meetName, timeStr) {
+
+        if (!timeStr) return "-";
+
+        const [m, s] = timeStr.split(":");
+
+        const totalSec =
+            parseInt(m) * 60 +
+            parseFloat(s);
+
+        let miles = 3.10686;
+
+        const meet =
+            meetName.toLowerCase();
+
+        // 4K courses
+        if (
+            meet.includes("zionsville")
+        ) {
+
+            miles = 2.48548;
+        }
+
+        const paceSec =
+            totalSec / miles;
+
+        const paceMin =
+            Math.floor(paceSec / 60);
+
+        const paceRemain =
+            Math.round(paceSec % 60)
+            .toString()
+            .padStart(2, "0");
+
+        return `${paceMin}:${paceRemain}/mi`;
+    }
+
     function buildYearHTML(row) {
 
         if (!row) {
@@ -322,7 +359,7 @@ window.addEventListener("load", function () {
 
                                             <div class="course-pace">
 
-                                                ${formatPaceFrom5k(v)}
+                                                ${formatPaceForMeet(k, v)}
 
                                             </div>
 
