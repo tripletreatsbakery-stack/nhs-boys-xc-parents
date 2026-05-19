@@ -312,11 +312,21 @@ window.addEventListener("load", function () {
 
                                         </label>
 
-                                        <span>
+                                        <div class="course-right">
 
-                                            ${v}
+                                            <span>
 
-                                        </span>
+                                                ${v}
+
+                                            </span>
+
+                                            <div class="course-pace">
+
+                                                ${formatPaceFrom5k(v)}
+
+                                            </div>
+
+                                        </div>
 
                                     </div>
 
