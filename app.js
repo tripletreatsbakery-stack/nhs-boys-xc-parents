@@ -11,6 +11,7 @@ window.addEventListener("load", function () {
     let physData = [];
     let meetData = [];
     let yearData = [];
+    let athleteRenderToken = 0;
 
     Promise.all([
 
@@ -161,9 +162,9 @@ window.addEventListener("load", function () {
         return `${paceMin}:${paceRemain}/mi`;
     }
 
-    function formatPaceForMeet(meetName, timeStr) {
+    function formatPaceForDistance(timeStr, distanceM) {
 
-        if (!timeStr) return "-";
+        if (!timeStr || !distanceM) return "-";
 
         const [m, s] = timeStr.split(":");
 
@@ -171,31 +172,122 @@ window.addEventListener("load", function () {
             parseInt(m) * 60 +
             parseFloat(s);
 
-        let miles = 3.10686;
-
-        const meet =
-            meetName.toLowerCase();
-
-        // 4K courses
-        if (
-            meet.includes("zionsville")
-        ) {
-
-            miles = 2.48548;
-        }
+        const miles = Number(distanceM) / 1609.344;
 
         const paceSec =
             totalSec / miles;
 
-        const paceMin =
-            Math.floor(paceSec / 60);
+        let paceMin = Math.floor(paceSec / 60);
+        let paceRemain = Math.round(paceSec % 60);
 
-        const paceRemain =
-            Math.round(paceSec % 60)
-            .toString()
-            .padStart(2, "0");
+        if (paceRemain === 60) {
+            paceMin++;
+            paceRemain = 0;
+        }
 
-        return `${paceMin}:${paceRemain}/mi`;
+        return `${paceMin}:${String(paceRemain).padStart(2, "0")}/mi`;
+    }
+
+    function escapeHTML(value) {
+        return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    function meetKey(value) {
+        return String(value || "")
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "_")
+            .replace(/^_+|_+$/g, "");
+    }
+
+    function recurringMeetOrder(row) {
+        const date = row.season_date || row.meet_pr_date;
+        if (!date) return Number.MAX_SAFE_INTEGER;
+
+        const match = String(date).match(/^(?:\d{4})-(\d{2})-(\d{2})/);
+        return match ? Number(match[1]) * 100 + Number(match[2]) : Number.MAX_SAFE_INTEGER;
+    }
+
+    function buildMeetPRHTML(rows, existingMeetRow) {
+        if (!rows.length) {
+            return `<div class="no-data">No 5000m meet PR data available</div>`;
+        }
+
+        const existingOrder = Object.entries(existingMeetRow || {})
+            .filter(([key, value]) => key !== "athlete_id" && key !== "full_name" && value)
+            .map(([key]) => meetKey(key));
+        const orderIndex = new Map(existingOrder.map((key, index) => [key, index]));
+        const selectedRows = existingOrder.length
+            ? rows.filter(row => orderIndex.has(meetKey(row.series_name)))
+            : rows;
+        const orderedRows = [...selectedRows].sort((a, b) => {
+            if (existingOrder.length) {
+                return orderIndex.get(meetKey(a.series_name)) - orderIndex.get(meetKey(b.series_name));
+            }
+            return recurringMeetOrder(a) - recurringMeetOrder(b) ||
+                String(a.series_name || "").localeCompare(String(b.series_name || ""));
+        });
+
+        if (!orderedRows.length) {
+            return `<div class="no-data">No recurring meet PR data available</div>`;
+        }
+
+        const cards = orderedRows.map(row => `
+            <div class="meet-pr-item">
+                <div class="meet-pr-name">${escapeHTML(row.series_name || "Meet")}</div>
+                <div class="meet-pr-result">
+                    <span>${escapeHTML(row.meet_pr_raw || "—")}</span>
+                    <div class="meet-pr-pace">${row.meet_pr_raw ? formatPaceForDistance(row.meet_pr_raw, row.distance_m) : ""}</div>
+                </div>
+                <div class="meet-pr-result">
+                    <span>${escapeHTML(row.season_raw || "—")}</span>
+                    <div class="meet-pr-pace">${row.season_raw ? formatPaceForDistance(row.season_raw, row.distance_m) : ""}</div>
+                </div>
+            </div>
+        `).join("");
+
+        return `
+            <div class="meet-pr-headings">
+                <span>MEET</span><span>MEET PR</span><span>THIS SEASON</span>
+            </div>
+            <div class="meet-pr-grid">${cards}</div>
+        `;
+    }
+
+    async function loadMeetPRs(athleteId, existingMeetRow, renderToken) {
+        const params = new URLSearchParams({
+            select: "athlete_id,full_name,series_name,distance_m,meet_pr_seconds,meet_pr_raw,meet_pr_date,season_seconds,season_raw,season_date,seconds_from_meet_pr",
+            athlete_id: `eq.${athleteId}`,
+            distance_m: "eq.5000"
+        });
+
+        try {
+            const response = await fetch(base + "v_athlete_meet_pr_season?" + params, { headers });
+            if (!response.ok) throw new Error(`Meet PR query failed (${response.status})`);
+
+            const rows = await response.json();
+            if (renderToken !== athleteRenderToken) return;
+
+            const target = document.getElementById("meetPRContent");
+            if (target) {
+                target.innerHTML = buildMeetPRHTML(
+                    Array.isArray(rows) ? rows : [],
+                    existingMeetRow
+                );
+            }
+        } catch (error) {
+            console.error("Unable to load meet PRs", error);
+            if (renderToken !== athleteRenderToken) return;
+
+            const target = document.getElementById("meetPRContent");
+            if (target) {
+                target.innerHTML = `<div class="no-data meet-pr-error">Meet PRs could not be loaded. Year-over-year data is still available.</div>`;
+            }
+        }
     }
 
     function buildYearHTML(row) {
@@ -250,6 +342,15 @@ window.addEventListener("load", function () {
 
             .join("");
 
+        if (!blocks) {
+
+            return `
+                <div class="no-data">
+                    No yearly data available
+                </div>
+            `;
+        }
+
         const improvement =
             getImprovement(row);
 
@@ -291,6 +392,8 @@ window.addEventListener("load", function () {
         const years =
             getYearRow(athlete.full_name);
 
+        const renderToken = ++athleteRenderToken;
+
         document.getElementById("athleteData").innerHTML = `
 
             <div class="card athlete-header">
@@ -309,7 +412,7 @@ window.addEventListener("load", function () {
 
             </div>
 
-            <div class="card">
+            <div class="card athlete-journey-card">
 
                 <h3>
 
@@ -317,82 +420,41 @@ window.addEventListener("load", function () {
 
                 </h3>
 
-                <div class="course-layout">
+                <h4>
 
-                    <div>
+                    MEET PRs
 
-                        <h4>
+                </h4>
 
-                            COURSE BESTS
+                <div id="meetPRContent" aria-live="polite">
 
-                        </h4>
-
-                        <div class="course-grid">
-
-                            ${Object.entries(meetPRs || {})
-
-                                .filter(([k, v]) =>
-
-                                    k !== "athlete_id" &&
-                                    k !== "full_name" &&
-                                    v
-
-                                )
-
-                                .map(([k, v]) => `
-
-                                    <div class="course-item">
-
-                                        <label>
-
-                                            ${k.replace(/_/g, " ")}
-
-                                        </label>
-
-                                        <div class="course-right">
-
-                                            <span>
-
-                                                ${v}
-
-                                            </span>
-
-                                            <div class="course-pace">
-
-                                                ${formatPaceForMeet(k, v)}
-
-                                            </div>
-
-                                        </div>
-
-                                    </div>
-
-                                `)
-
-                                .join("")
-                            }
-
-                        </div>
-
-                    </div>
-
-                    <div>
-
-                        <h4>
-
-                            YEAR OVER YEAR
-
-                        </h4>
-
-                        ${buildYearHTML(years)}
-
+                    <div class="no-data">
+                        Loading meet PRs…
                     </div>
 
                 </div>
 
             </div>
 
+            <div class="card year-over-year-card">
+
+                <h3>
+
+                    YEAR OVER YEAR
+
+                </h3>
+
+                ${buildYearHTML(years)}
+
+            </div>
+
         `;
+
+        loadMeetPRs(
+            athlete.athlete_id,
+            meetPRs,
+            renderToken
+        );
     }
 
 });
