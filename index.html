@@ -16,8 +16,13 @@
 </header>
 
 <main>
-    <label>Select Athlete:</label>
-    <select id="athleteDropdown"></select>
+    <section class="athlete-switcher" aria-labelledby="athleteSwitcherLabel">
+        <div>
+            <label id="athleteSwitcherLabel" for="athleteDropdown">Change athlete</label>
+            <div class="athlete-switcher-help">Your last opened athlete will open automatically on this device.</div>
+        </div>
+        <select id="athleteDropdown" aria-label="Change athlete"></select>
+    </section>
 
     <div id="status"></div>
     <div id="athleteData"></div>

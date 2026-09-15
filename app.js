@@ -12,6 +12,7 @@ window.addEventListener("load", function () {
     let meetData = [];
     let yearData = [];
     let athleteRenderToken = 0;
+    const lastAthleteStorageKey = "paceright.parent.lastAthleteId";
 
     Promise.all([
 
@@ -62,11 +63,13 @@ window.addEventListener("load", function () {
             dropdown.appendChild(opt);
         });
 
-        showAthlete(0);
+        const initialAthleteIndex = getInitialAthleteIndex();
+        dropdown.value = String(initialAthleteIndex);
+        showAthlete(initialAthleteIndex);
 
         dropdown.addEventListener("change", e => {
 
-            showAthlete(e.target.value);
+            showAthlete(Number(e.target.value));
 
         });
 
@@ -84,6 +87,32 @@ window.addEventListener("load", function () {
     // =========================================
     // HELPERS
     // =========================================
+
+    function readLastAthleteId() {
+        try {
+            return window.localStorage.getItem(lastAthleteStorageKey);
+        } catch (error) {
+            console.warn("Unable to read the last opened athlete", error);
+            return null;
+        }
+    }
+
+    function rememberAthlete(athleteId) {
+        try {
+            window.localStorage.setItem(lastAthleteStorageKey, String(athleteId));
+        } catch (error) {
+            console.warn("Unable to remember the opened athlete", error);
+        }
+    }
+
+    function getInitialAthleteIndex() {
+        const lastAthleteId = readLastAthleteId();
+        const savedIndex = physData.findIndex(athlete =>
+            String(athlete.athlete_id) === lastAthleteId
+        );
+
+        return savedIndex >= 0 ? savedIndex : 0;
+    }
 
     function getMeetPRs(id) {
 
@@ -385,6 +414,8 @@ window.addEventListener("load", function () {
         const athlete = physData[i];
 
         if (!athlete) return;
+
+        rememberAthlete(athlete.athlete_id);
 
         const meetPRs =
             getMeetPRs(athlete.athlete_id);

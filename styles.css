@@ -25,7 +25,35 @@ main {
     margin: auto;
 }
 
-select {
+.athlete-switcher {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 16px 18px;
+    border: 1px solid rgba(212,175,55,0.35);
+    border-radius: 14px;
+    background: var(--panel);
+}
+
+.athlete-switcher label {
+    display: block;
+    color: var(--gold);
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.athlete-switcher-help {
+    margin-top: 5px;
+    color: #aaa;
+    font-size: 13px;
+    line-height: 1.35;
+}
+
+.athlete-switcher select {
+    min-width: 220px;
     padding: 10px 14px;
     background: var(--panel);
     color: var(--text);
@@ -561,6 +589,17 @@ h4 {
 
     main {
         padding: 14px;
+    }
+
+    .athlete-switcher {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .athlete-switcher select {
+        width: 100%;
+        min-width: 0;
     }
 
     .meet-pr-headings,
